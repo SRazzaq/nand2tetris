@@ -39,17 +39,17 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    
+
     /***  Decode ***/
-    
+
     // A or C
     Not(in=instruction[15], out=Ainstruction); // A instruction if instruction[15] = 0
     Not(in=Ainstruction,    out=Cinstruction); // C instruction if instruction[15] = 1
-	
-	// use A Register or Memory
+
+    // use A Register or Memory
     Mux16(a=outA, b=inM, sel=instruction[12], out=AorM);
-	
-	// Destination
+
+    // Destination
     And(a=Cinstruction, b=instruction[5], out=writeA); // write to A if instruction[5]=1 && C instruction
     And(a=Cinstruction, b=instruction[4], out=writeD); // write to D if instruction[4]=1 && C instruction
     And(a=Cinstruction, b=instruction[3], out=writeM); // write to M if instruction[3]=1 && C instruction
@@ -61,7 +61,7 @@ CHIP CPU {
                               // < 0 (comes from ALU)
     Not(in=eq, out=neq);      // != 0
     Or(a=eq, b=ltz, out=lez); // <= 0 
-    
+
     DMux8Way(in=Cinstruction, sel=instruction[0..2], a=null, b=jgt, c=jeq, d=jge, e=jlt, f=jne, g=jle, h=jump);
     And(a=jgt, b=gtz, out=jmpjgt);
     And(a=jeq, b=eq,  out=jmpeq );
@@ -70,16 +70,16 @@ CHIP CPU {
     And(a=jne, b=neq, out=jmpneq);
     And(a=jle, b=lez, out=jmplez);
     Or8Way(in[0]=false, in[1]=jmpjgt, in[2]=jmpeq, in[3]=jmpgez, in[4]=jmpltz, in[5]=jmpneq, in[6]=jmplez, in[7]=jump, out=jmp);
-    
-	Not(in=jmp, out=inc); // if it is not jump, it is increment.
 
-	// Set flag to load A Register 
-	Or(a=Ainstruction, b=writeA, out=loadA);
+    Not(in=jmp, out=inc); // if it is not jump, it is increment.
+
+    // Set flag to load A Register 
+    Or(a=Ainstruction, b=writeA, out=loadA);
     // Set input to A Register
     Mux16(a=instruction, b=outALU, sel=writeA, out=instorALU);
-	
+
     /*** Main Components ***/
-    
+
     ARegister(
         in=instorALU,
         load=loadA, 
@@ -92,7 +92,7 @@ CHIP CPU {
         load=writeD,
         out=outD
     );
-        
+    
     ALU(
         x  = outD, 
         y  = AorM, 
@@ -106,7 +106,7 @@ CHIP CPU {
         ng = ltz,
         out=outALU, out = outM
     );
-        
+    
     PC(
         in=outA, 
         inc=inc, 

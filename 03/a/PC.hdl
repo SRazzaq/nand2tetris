@@ -16,13 +16,13 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    
+
     Inc16(in=outR, out=incR); // Reg + 1
-    
+
     Mux16(a=outR,  b=incR,  sel=inc,   out=mux1); // if inc use Reg+1
     Mux16(a=mux1,  b=in,    sel=load,  out=mux2); // else if load use in
     Mux16(a=mux2,  b=false, sel=reset, out=mux3); // else if reset use 0
                                                   // else outR
-                                                  
+                                              
     Register(in=mux3, load=true, out=outR, out=out);
 }
