@@ -4,11 +4,12 @@ namespace VMTranslator
 {
     internal class PushStatic : PushCommand
     {
-        private int StaticBase = 16;
+        private string fileName;
         private string index;
 
-        public PushStatic(string index)
+        public PushStatic(string fileName, string index)
         {
+            this.fileName = fileName;
             this.index = index;
         }
         protected override string LoadSegmentToD
@@ -16,7 +17,7 @@ namespace VMTranslator
             get
             {
                 return
-                    "@" + (StaticBase + int.Parse(index)) + Environment.NewLine +
+                    string.Format("@{0}.{1}", fileName, int.Parse(index)) + Environment.NewLine +
                     "D=M" + Environment.NewLine;
             }
         }

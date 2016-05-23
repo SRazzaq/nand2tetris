@@ -14,7 +14,6 @@ namespace VMTranslator
         internal void Write(string code)
         {
             writer.Write(code);
-            writer.WriteLine();
         }
     }
 }

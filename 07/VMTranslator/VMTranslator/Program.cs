@@ -26,32 +26,49 @@ namespace VMTranslator
             return (File.GetAttributes(source) & FileAttributes.Directory) == FileAttributes.Directory;
         }
 
-        private static void ProcessFile(string file)
+        private static void ProcessFile(string vmFile)
         {
-            var asmFile = Path.ChangeExtension(file, ".asm");
-            using (var reader = new StreamReader(file))
-            {
-                using (var writer = new StreamWriter(asmFile))
-                {
-
-                    foreach (var command in new Parser(reader))
-                    {
-                        writer.WriteLine(command.Code);
-                        Console.Write(command.Code);
-                    }
-                }
-            }
+            var asmFile = Path.ChangeExtension(vmFile, ".asm");
+            WriteInit(asmFile);
+            GenerateAsm(vmFile, asmFile);
 
         }
 
         private static void ProcessDirectory(string dir)
         {
             var asmFile = Path.Combine(dir, new DirectoryInfo(dir).Name + ".asm");
-            var writer = new CodeWriter(asmFile);
-            foreach (var vm in Directory.GetFiles(dir, "*.vm"))
+            WriteInit(asmFile);
+            foreach (var vmFile in Directory.GetFiles(dir, "*.vm"))
             {
-                // Parser = new Parser()
-                // Process vm
+                GenerateAsm(vmFile, asmFile);
+            }
+        }
+
+        private static void WriteInit(string asmFile)
+        {
+            using (var writer = new StreamWriter(asmFile, false))
+            {
+                writer.Write(
+                    "@256" + Environment.NewLine +
+                    "D=A" + Environment.NewLine +
+                    "@SP" + Environment.NewLine +
+                    "M=D" + Environment.NewLine +
+                    new Call("Sys.init", "0").Code + Environment.NewLine
+                    );
+            }
+        }
+
+        private static void GenerateAsm(string vmFile, string asmFile)
+        {
+            using (var reader = new StreamReader(vmFile))
+            {
+                using (var writer = new StreamWriter(asmFile, true))
+                {
+                    foreach (var command in new Parser(reader))
+                    {
+                        writer.Write(command.Code);
+                    }
+                }
             }
         }
 

@@ -71,6 +71,12 @@
     <Compile Include="Command\Memory\Push\PushThis.cs" />
     <Compile Include="Command\Memory\Push\PushThat.cs" />
     <Compile Include="Command\Memory\Push\PushConstant.cs" />
+    <Compile Include="Command\ProgramFlow\Call.cs" />
+    <Compile Include="Command\ProgramFlow\Function.cs" />
+    <Compile Include="Command\ProgramFlow\Goto.cs" />
+    <Compile Include="Command\ProgramFlow\IfGoto.cs" />
+    <Compile Include="Command\ProgramFlow\Label.cs" />
+    <Compile Include="Command\ProgramFlow\Return.cs" />
     <Compile Include="Parser\Parser.cs" />
     <Compile Include="Parser\ParserEnumerator.cs" />
     <Compile Include="Command\Memory\Push\PushCommand.cs" />

@@ -96,7 +96,7 @@ namespace VMTranslator
                                     current = new PushPointer(commandParts[2]);
                                     return true;
                                 case "static":
-                                    current = new PushStatic(commandParts[2]);
+                                    current = new PushStatic(FileName, commandParts[2]);
                                     return true;
                             }
                             break;
@@ -122,10 +122,28 @@ namespace VMTranslator
                                     current = new PopPointer(commandParts[2]);
                                     return true;
                                 case "static":
-                                    current = new PopStatic(commandParts[2]);
+                                    current = new PopStatic(FileName, commandParts[2]);
                                     return true;
                             }
                             break;
+                        case "label":
+                            current = new Label(commandParts[1]);
+                            return true;
+                        case "if-goto":
+                            current = new IfGoto(commandParts[1]);
+                            return true;
+                        case "goto":
+                            current = new Goto(commandParts[1]);
+                            return true;
+                        case "function":
+                            current = new Function(commandParts[1], commandParts[2]);
+                            return true;
+                        case "call":
+                            current = new Call(commandParts[1], commandParts[2]);
+                            return true;
+                        case "return":
+                            current = new Return();
+                            return true;
                     }
                 }
             } while (!file.EndOfStream);
@@ -148,6 +166,15 @@ namespace VMTranslator
         {
             var lineParts = line.Split(new string[] { "//" }, System.StringSplitOptions.None);
             return lineParts[0].Trim();
+        }
+
+        public string FileName
+        {
+            get
+            {
+                var fileInfo = new FileInfo(((FileStream)file.BaseStream).Name);
+                return fileInfo.Name;
+            }
         }
     }
 }

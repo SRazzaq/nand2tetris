@@ -3,11 +3,12 @@ namespace VMTranslator
 {
     internal class PopStatic : PopCommand
     {
-        private int StaticBase = 16;
+        private string fileName;
         private string index;
 
-        public PopStatic(string index)
+        public PopStatic(string fileName, string index)
         {
+            this.fileName = fileName;
             this.index = index;
         }
 
@@ -16,7 +17,7 @@ namespace VMTranslator
             get
             {
                 return
-                    "@" + (StaticBase + int.Parse(index)) + Environment.NewLine +
+                    string.Format("@{0}.{1}", fileName, index) + Environment.NewLine +
                     "D=A" + Environment.NewLine +
                     TEMP + Environment.NewLine +
                     "M=D" + Environment.NewLine;
