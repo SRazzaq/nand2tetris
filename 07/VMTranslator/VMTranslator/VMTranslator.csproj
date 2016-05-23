@@ -41,7 +41,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeWriter.cs" />
     <Compile Include="Command\Arithmetic\Binary\Comparison\ComparisonCommand.cs" />
     <Compile Include="Command\Arithmetic\Binary\Comparison\GtCommand.cs" />
     <Compile Include="Command\Arithmetic\Binary\Comparison\LtCommand.cs" />
