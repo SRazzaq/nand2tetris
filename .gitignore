@@ -1,3 +1,7 @@
 *.cmp
 *.out
 *.tst
+*.suo
+*.user
+bin
+obj
