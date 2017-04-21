@@ -4,7 +4,7 @@ using System.IO;
 
 namespace VMTranslator
 {
-    class ParserEnumerator : IEnumerator<Command>
+    internal class ParserEnumerator : IEnumerator<Command>
     {
         private StreamReader file;
         private Command current;
@@ -77,70 +77,90 @@ namespace VMTranslator
                                 case "constant":
                                     current = new PushConstant(commandParts[2]);
                                     return true;
+
                                 case "local":
                                     current = new PushLocal(commandParts[2]);
                                     return true;
+
                                 case "argument":
                                     current = new PushArgument(commandParts[2]);
                                     return true;
+
                                 case "this":
                                     current = new PushThis(commandParts[2]);
                                     return true;
+
                                 case "that":
                                     current = new PushThat(commandParts[2]);
                                     return true;
+
                                 case "temp":
                                     current = new PushTemp(commandParts[2]);
                                     return true;
+
                                 case "pointer":
                                     current = new PushPointer(commandParts[2]);
                                     return true;
+
                                 case "static":
                                     current = new PushStatic(FileName, commandParts[2]);
                                     return true;
                             }
                             break;
+
                         case "pop":
                             switch (commandParts[1].ToLower())
                             {
                                 case "local":
                                     current = new PopLocal(commandParts[2]);
                                     return true;
+
                                 case "argument":
                                     current = new PopArgument(commandParts[2]);
                                     return true;
+
                                 case "this":
                                     current = new PopThis(commandParts[2]);
                                     return true;
+
                                 case "that":
                                     current = new PopThat(commandParts[2]);
                                     return true;
+
                                 case "temp":
                                     current = new PopTemp(commandParts[2]);
                                     return true;
+
                                 case "pointer":
                                     current = new PopPointer(commandParts[2]);
                                     return true;
+
                                 case "static":
                                     current = new PopStatic(FileName, commandParts[2]);
                                     return true;
                             }
                             break;
+
                         case "label":
                             current = new Label(commandParts[1]);
                             return true;
+
                         case "if-goto":
                             current = new IfGoto(commandParts[1]);
                             return true;
+
                         case "goto":
                             current = new Goto(commandParts[1]);
                             return true;
+
                         case "function":
                             current = new Function(commandParts[1], commandParts[2]);
                             return true;
+
                         case "call":
                             current = new Call(commandParts[1], commandParts[2]);
                             return true;
+
                         case "return":
                             current = new Return();
                             return true;

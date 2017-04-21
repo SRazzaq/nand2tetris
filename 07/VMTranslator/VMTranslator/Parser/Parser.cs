@@ -1,11 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using VMTranslator;
 
 namespace VMTranslator
 {
-    class Parser : IEnumerable<Command>
+    internal class Parser : IEnumerable<Command>
     {
         private StreamReader file;
 
