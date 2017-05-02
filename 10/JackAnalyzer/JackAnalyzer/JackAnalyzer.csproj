@@ -63,7 +63,6 @@
     <Compile Include="AST\Term\ArrayTerm.cs" />
     <Compile Include="AST\VarDec.cs" />
     <Compile Include="AST\Statements\WhileStatement.cs" />
-    <Compile Include="IParser.cs" />
     <Compile Include="Parser\ClassParser.cs" />
     <Compile Include="Parser\ClassVarDecParser.cs" />
     <Compile Include="Parser\DoStatementParser.cs" />
