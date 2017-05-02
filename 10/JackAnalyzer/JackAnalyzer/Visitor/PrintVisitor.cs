@@ -46,20 +46,14 @@ namespace JackAnalyzer.Visitor
             WriteLine("<identifier> {0} </identifier>", _class.Name);
             WriteLine("<symbol> { </symbol>");
 
-            if (_class.ClassVarDecs.Count > 0)
+            foreach (var classVarDec in _class.ClassVarDecs)
             {
-                foreach (var classVarDec in _class.ClassVarDecs)
-                {
-                    classVarDec.Accept(this);
-                }
+                classVarDec.Accept(this);
             }
 
-            if (_class.SubrouteDecs.Count > 0)
+            foreach (var subRouteDec in _class.SubrouteDecs)
             {
-                foreach (var subRouteDec in _class.SubrouteDecs)
-                {
-                    subRouteDec.Accept(this);
-                }
+                subRouteDec.Accept(this);
             }
 
             WriteLine("<symbol> } </symbol>");
@@ -135,12 +129,9 @@ namespace JackAnalyzer.Visitor
 
             WriteLine("<symbol> { </symbol>");
 
-            if (subroutineBody.VarDecs.Count > 0)
+            foreach (var varDec in subroutineBody.VarDecs)
             {
-                foreach (var varDec in subroutineBody.VarDecs)
-                {
-                    varDec.Accept(this);
-                }
+                varDec.Accept(this);
             }
 
             if (subroutineBody.Statements.Count > 0)
@@ -239,6 +230,19 @@ namespace JackAnalyzer.Visitor
                 WriteFooter("</statements>");
             }
             WriteLine("<symbol> } </symbol>");
+
+            if (ifStatement.ElseStatements.Count > 0)
+            {
+                WriteLine("<keyword> else </keyword>");
+                WriteLine("<symbol> { </symbol>");
+                WriteHeader("<statements>");
+                foreach (var statement in ifStatement.ElseStatements)
+                {
+                    statement.Accept(this);
+                }
+                WriteFooter("</statements>");
+                WriteLine("<symbol> } </symbol>");
+            }
 
             WriteFooter("</ifStatement>");
         }
