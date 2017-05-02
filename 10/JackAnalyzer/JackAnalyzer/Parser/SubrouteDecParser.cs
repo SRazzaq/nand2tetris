@@ -1,32 +1,34 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using JackAnalyzer.AST;
+using System.Collections.Generic;
 
 namespace JackAnalyzer.Parser
 {
     internal class SubrouteDecParser : Parser
     {
-        public SubrouteDecParser(IEnumerator<Token> scanner, StreamWriter writer)
-            : base(scanner, writer)
+        public SubrouteDecParser(IEnumerator<Token> scanner)
+            : base(scanner)
         {
         }
 
-        public override void Parse()
+        public SubrouteDec Parse()
         {
-            WriteLine("<subroutineDec>");
+            var subrouteDec = new SubrouteDec();
 
-            WriteToken<KeywordToken>();// ('constructor' | 'function' | 'method')
-            WriteToken<Token>(); // ('void' | type)
-            WriteToken<IdentifierToken>(); // subroutineName 
+            subrouteDec.Type = GetToken<KeywordToken>().Value;// ('constructor' | 'function' | 'method')
+            subrouteDec.ReturnType = GetToken<Token>().Value; // ('void' | type)
+            subrouteDec.Name = GetToken<IdentifierToken>().Value; // subroutineName 
 
-            WriteToken<SymbolToken>("(");
+            GetToken<SymbolToken>("(");
+            while (CurrentToken.Value != ")")
+            {
+                if (CurrentToken.Value == ",") GetToken<SymbolToken>(",");
+                subrouteDec.Parameters.Add(new ParameterParser(scanner).Parse());
+            }
+            GetToken<SymbolToken>(")");
 
-            new ParameterListParser(scanner, writer).Parse();
+            subrouteDec.SubroutineBody = new SubroutineBodyParser(scanner).Parse();
 
-            WriteToken<SymbolToken>(")");
-
-            new SubroutineBodyParser(scanner, writer).Parse();
-
-            WriteLine("</subroutineDec>");
+            return subrouteDec;
         }
     }
 }

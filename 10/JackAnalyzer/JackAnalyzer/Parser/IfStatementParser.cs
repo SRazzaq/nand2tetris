@@ -1,37 +1,43 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using JackAnalyzer.AST;
+using System.Collections.Generic;
 
 namespace JackAnalyzer.Parser
 {
     internal class IfStatementParser : Parser
     {
-        public IfStatementParser(IEnumerator<Token> scanner, StreamWriter writer)
-            : base(scanner, writer)
+        public IfStatementParser(IEnumerator<Token> scanner)
+            : base(scanner)
         {
         }
 
-        public override void Parse()
+        public IfStatement Parse()
         {
-            WriteLine("<ifStatement>");
+            var ifStatement = new IfStatement();
 
-            WriteToken<KeywordToken>("if");
-            WriteToken<SymbolToken>("(");
-            new ExpressionParser(scanner, writer).Parse();
-            WriteToken<SymbolToken>(")");
+            GetToken<KeywordToken>("if");
+            GetToken<SymbolToken>("(");
+            ifStatement.Condition = new ExpressionParser(scanner).Parse();
+            GetToken<SymbolToken>(")");
 
-            WriteToken<SymbolToken>("{");
-            new StatementsParser(scanner, writer).Parse();
-            WriteToken<SymbolToken>("}");
+            GetToken<SymbolToken>("{");
+            while (CurrentToken.Value != "}")
+            {
+                ifStatement.IfStatements.Add(new StatementParser(scanner).Parse());
+            }
+            GetToken<SymbolToken>("}");
 
             if (CurrentToken.Value == "else")
             {
-                WriteToken<KeywordToken>("else");
-                WriteToken<SymbolToken>("{");
-                new StatementsParser(scanner, writer).Parse();
-                WriteToken<SymbolToken>("}");
+                GetToken<KeywordToken>("else");
+                GetToken<SymbolToken>("{");
+                while (CurrentToken.Value != "}")
+                {
+                    ifStatement.ElseStatements.Add(new StatementParser(scanner).Parse());
+                }
+                GetToken<SymbolToken>("}");
             }
 
-            WriteLine("</ifStatement>");
+            return ifStatement;
         }
     }
 }

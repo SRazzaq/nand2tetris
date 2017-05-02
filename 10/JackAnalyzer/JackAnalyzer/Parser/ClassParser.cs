@@ -1,36 +1,36 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using JackAnalyzer.AST;
+using System.Collections.Generic;
 
 namespace JackAnalyzer.Parser
 {
     internal class ClassParser : Parser
     {
-        public ClassParser(IEnumerator<Token> scanner, StreamWriter writer)
-            : base(scanner, writer)
+        public ClassParser(IEnumerator<Token> scanner)
+            : base(scanner)
         {
         }
 
-        public override void Parse()
+        public Class Parse()
         {
-            WriteLine("<class>");
+            var _class = new Class();
 
-            WriteToken<KeywordToken>("class");
-            WriteToken<IdentifierToken>(); // className
-            WriteToken<SymbolToken>("{");
+            GetToken<KeywordToken>("class");
+            _class.Name = GetToken<IdentifierToken>().Value; // className
+            GetToken<SymbolToken>("{");
 
             while (CurrentToken.Value == "static" || CurrentToken.Value == "field")
             {
-                new ClassVarDecParser(scanner, writer).Parse();
+                _class.ClassVarDecs.Add(new ClassVarDecParser(scanner).Parse());
             }
 
             while (CurrentToken.Value == "constructor" || CurrentToken.Value == "function" || CurrentToken.Value == "method")
             {
-                new SubrouteDecParser(scanner, writer).Parse();
+                _class.SubrouteDecs.Add(new SubrouteDecParser(scanner).Parse());
             }
 
-            WriteToken<SymbolToken>("}");
+            GetToken<SymbolToken>("}");
 
-            WriteLine("</class>");
+            return _class;
         }
     }
 }

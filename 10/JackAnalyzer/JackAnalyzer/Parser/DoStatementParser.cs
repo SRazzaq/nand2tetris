@@ -1,39 +1,44 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using JackAnalyzer.AST;
+using System.Collections.Generic;
 
 namespace JackAnalyzer.Parser
 {
     internal class DoStatementParser : Parser
     {
-        public DoStatementParser(IEnumerator<Token> scanner, StreamWriter writer)
-            : base(scanner, writer)
+        public DoStatementParser(IEnumerator<Token> scanner)
+            : base(scanner)
         {
         }
 
-        public override void Parse()
+        public DoStatement Parse()
         {
-            WriteLine("<doStatement>");
+            var doStatement = new DoStatement();
 
-            WriteToken<KeywordToken>("do");
-            WriteToken<Token>();
-            switch (CurrentToken.Value)
+            GetToken<KeywordToken>("do");
+
+            var token = GetToken<Token>();
+            if (CurrentToken.Value == ".")
             {
-                case "(":
-                    WriteToken<SymbolToken>("(");
-                    new ExpressionListParser(scanner, writer).Parse();
-                    WriteToken<SymbolToken>(")");
-                    break;
-                case ".":
-                    WriteToken<SymbolToken>(".");
-                    WriteToken<Token>();
-                    WriteToken<SymbolToken>("(");
-                    new ExpressionListParser(scanner, writer).Parse();
-                    WriteToken<SymbolToken>(")");
-                    break;
+                doStatement.ClassName = token.Value;
+                GetToken<SymbolToken>(".");
+                doStatement.SubroutineName = GetToken<Token>().Value;
             }
-            WriteToken<SymbolToken>(";");
+            else
+            {
+                doStatement.SubroutineName = token.Value;
+            }
 
-            WriteLine("</doStatement>");
+            GetToken<SymbolToken>("(");
+            while (CurrentToken.Value != ")")
+            {
+                doStatement.Expressions.Add(new ExpressionParser(scanner).Parse());
+                if (CurrentToken.Value == ",") GetToken<SymbolToken>(",");
+            }
+            GetToken<SymbolToken>(")");
+
+            GetToken<SymbolToken>(";");
+
+            return doStatement;
         }
     }
 }

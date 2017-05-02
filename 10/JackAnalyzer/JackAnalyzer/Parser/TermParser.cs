@@ -1,63 +1,103 @@
-﻿using System;
+﻿using JackAnalyzer.AST;
+using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace JackAnalyzer.Parser
 {
     internal class TermParser : Parser
     {
-        public TermParser(IEnumerator<Token> scanner, StreamWriter writer)
-            : base(scanner, writer)
+        public TermParser(IEnumerator<Token> scanner)
+            : base(scanner)
         {
         }
 
 
-        public override void Parse()
+        public Term Parse()
         {
-            WriteLine("<term>");
-
-            switch (CurrentToken.Value)
+            if (CurrentToken.Value == "-" || CurrentToken.Value == "~") // Unary operators
             {
-                case "(":
-                    WriteToken<SymbolToken>("(");
-                    new ExpressionParser(scanner, writer).Parse();
-                    WriteToken<SymbolToken>(")");
-                    break;
-                case "-":
-                    WriteToken<SymbolToken>("-");
-                    new TermParser(scanner, writer).Parse();
-                    break;
-                case "~":
-                    WriteToken<SymbolToken>("~");
-                    new TermParser(scanner, writer).Parse();
-                    break;
-                default:
-                    WriteToken<Token>();
-                    break;
+                var term = new UnaryTerm();
+
+                term.Operator = GetToken<SymbolToken>().Value;
+                term.Term = new TermParser(scanner).Parse();
+                return term;
             }
 
-            switch (CurrentToken.Value)
+            if (CurrentToken.Value == "(") // Expression
             {
-                case "[":
-                    WriteToken<SymbolToken>("[");
-                    new ExpressionParser(scanner, writer).Parse();
-                    WriteToken<SymbolToken>("]");
-                    break;
-                case "(":
-                    WriteToken<SymbolToken>("(");
-                    new ExpressionListParser(scanner, writer).Parse();
-                    WriteToken<SymbolToken>(")");
-                    break;
-                case ".":
-                    WriteToken<SymbolToken>(".");
-                    WriteToken<Token>();
-                    WriteToken<SymbolToken>("(");
-                    new ExpressionListParser(scanner, writer).Parse();
-                    WriteToken<SymbolToken>(")");
-                    break;
+                var term = new ExpressionTerm();
+
+                GetToken<SymbolToken>("(");
+                term.Expression = new ExpressionParser(scanner).Parse();
+                GetToken<SymbolToken>(")");
+
+                return term;
             }
 
-            WriteLine("</term>");
+            var token = GetToken<Token>();
+
+            if (CurrentToken.Value == "(" || CurrentToken.Value == ".") // Subroutine call
+            {
+                var term = new SubroutineCallTerm();
+                if (CurrentToken.Value == ".")
+                {
+                    term.ClassName = token.Value;
+                    GetToken<SymbolToken>(".");
+                    term.SubroutineName = GetToken<Token>().Value;
+                }
+                else
+                {
+                    term.SubroutineName = token.Value;
+                }
+
+                GetToken<SymbolToken>("(");
+                while (CurrentToken.Value != ")")
+                {
+                    term.Expressions.Add(new ExpressionParser(scanner).Parse());
+                    if (CurrentToken.Value == ",") GetToken<SymbolToken>(",");
+                }
+                GetToken<SymbolToken>(")");
+
+                return term;
+            }
+
+            if (token is IntegerToken)
+            {
+                var term = new IntegerConstantTerm();
+                term.Value = int.Parse(token.Value);
+                return term;
+            }
+
+            if (token is StringToken)
+            {
+                var term = new StringConstantTerm();
+                term.Value = token.Value;
+                return term;
+            }
+
+            if (token is IdentifierToken)
+            {
+                var term = new VariableTerm();
+                term.Variable = token.Value;
+
+                if (CurrentToken.Value == "[") // Array Expression
+                {
+                    GetToken<SymbolToken>("[");
+                    term.ArrayExpression = new ExpressionParser(scanner).Parse();
+                    GetToken<SymbolToken>("]");
+                }
+
+                return term;
+            }
+
+            if (token is KeywordToken)
+            {
+                var term = new KeywordConstantTerm();
+                term.Value = token.Value;
+                return term;
+            }
+
+            throw new Exception(string.Format("Invalid token found."));
         }
     }
 }

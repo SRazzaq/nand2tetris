@@ -1,24 +1,28 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using JackAnalyzer.AST;
+using System.Collections.Generic;
 
 namespace JackAnalyzer.Parser
 {
     internal class ReturnStatementParser : Parser
     {
-        public ReturnStatementParser(IEnumerator<Token> scanner, StreamWriter writer)
-            : base(scanner, writer)
+        public ReturnStatementParser(IEnumerator<Token> scanner)
+            : base(scanner)
         {
         }
 
-        public override void Parse()
+        public ReturnStatement Parse()
         {
-            WriteLine("<returnStatement>");
+            var _return = new ReturnStatement();
 
-            WriteToken<KeywordToken>("return");
-            if (CurrentToken.Value != ";") new ExpressionParser(scanner, writer).Parse();
-            WriteToken<SymbolToken>(";");
+            GetToken<KeywordToken>("return");
+            if (CurrentToken.Value != ";")
+            {
+                _return.Expression = new ExpressionParser(scanner).Parse();
+            }
 
-            WriteLine("</returnStatement>");
+            GetToken<SymbolToken>(";");
+
+            return _return;
         }
     }
 }

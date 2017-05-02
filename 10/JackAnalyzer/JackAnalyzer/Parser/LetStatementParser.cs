@@ -1,34 +1,34 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using JackAnalyzer.AST;
+using System.Collections.Generic;
 
 namespace JackAnalyzer.Parser
 {
     internal class LetStatementParser : Parser
     {
-        public LetStatementParser(IEnumerator<Token> scanner, StreamWriter writer)
-            : base(scanner, writer)
+        public LetStatementParser(IEnumerator<Token> scanner)
+            : base(scanner)
         {
         }
 
-        public override void Parse()
+        public LetStatement Parse()
         {
-            WriteLine("<letStatement>");
+            var letStatement = new LetStatement();
 
-            WriteToken<KeywordToken>("let");
-            WriteToken<IdentifierToken>(); // varName
+            GetToken<KeywordToken>("let");
+            letStatement.Variable = GetToken<IdentifierToken>().Value; // varName
 
             if (CurrentToken.Value == "[")
             {
-                WriteToken<SymbolToken>("[");
-                new ExpressionParser(scanner, writer).Parse();
-                WriteToken<SymbolToken>("]");
+                GetToken<SymbolToken>("[");
+                letStatement.ArrayExpression = new ExpressionParser(scanner).Parse();
+                GetToken<SymbolToken>("]");
             }
 
-            WriteToken<SymbolToken>("=");
-            new ExpressionParser(scanner, writer).Parse();
-            WriteToken<SymbolToken>(";");
+            GetToken<SymbolToken>("=");
+            letStatement.Expression = new ExpressionParser(scanner).Parse();
+            GetToken<SymbolToken>(";");
 
-            WriteLine("</letStatement>");
+            return letStatement;
         }
     }
 }

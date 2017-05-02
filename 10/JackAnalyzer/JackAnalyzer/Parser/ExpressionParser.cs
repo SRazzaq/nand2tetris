@@ -1,31 +1,31 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using JackAnalyzer.AST;
+using System.Collections.Generic;
 
 namespace JackAnalyzer.Parser
 {
     internal class ExpressionParser : Parser
     {
-        public ExpressionParser(IEnumerator<Token> scanner, StreamWriter writer)
-            : base(scanner, writer)
+        public ExpressionParser(IEnumerator<Token> scanner)
+            : base(scanner)
         {
         }
 
-        public override void Parse()
+        public Expression Parse()
         {
-            WriteLine("<expression>");
+            var expression = new Expression();
 
-            new TermParser(scanner, writer).Parse();
+            expression.Term = new TermParser(scanner).Parse();
             while (CurrentToken.Value == "+" || CurrentToken.Value == "-" ||
                    CurrentToken.Value == "*" || CurrentToken.Value == "/" ||
                    CurrentToken.Value == "&" || CurrentToken.Value == "|" ||
                    CurrentToken.Value == "<" || CurrentToken.Value == ">" ||
                    CurrentToken.Value == "=")
             {
-                WriteToken<SymbolToken>();
-                new TermParser(scanner, writer).Parse();
+                expression.Operator = GetToken<SymbolToken>().Value;
+                expression.OtherTerm = new TermParser(scanner).Parse();
             }
 
-            WriteLine("</expression>");
+            return expression;
         }
     }
 }

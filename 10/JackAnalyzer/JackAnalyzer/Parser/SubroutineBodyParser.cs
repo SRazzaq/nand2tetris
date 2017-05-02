@@ -1,30 +1,35 @@
-﻿using System;
+﻿using JackAnalyzer.AST;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace JackAnalyzer.Parser
 {
     internal class SubroutineBodyParser : Parser
     {
-        public SubroutineBodyParser(IEnumerator<Token> scanner, StreamWriter writer)
-            : base(scanner, writer)
+        public SubroutineBodyParser(IEnumerator<Token> scanner)
+            : base(scanner)
         {
         }
 
-        public override void Parse()
+        public SubroutineBody Parse()
         {
-            WriteLine("<subroutineBody>");
+            var subroutineBody = new SubroutineBody();
 
-            WriteToken<SymbolToken>("{");
+            GetToken<SymbolToken>("{");
 
-            new VarDecParser(scanner, writer).Parse();
-            new StatementsParser(scanner, writer).Parse();
+            while (CurrentToken.Value == "var")
+            {
 
-            WriteToken<SymbolToken>("}");
+                subroutineBody.VarDecs.Add(new VarDecParser(scanner).Parse());
+            }
 
-            WriteLine("</subroutineBody>");
+            while (CurrentToken.Value != "}")
+            {
+                subroutineBody.Statements.Add(new StatementParser(scanner).Parse());
+            }
+
+            GetToken<SymbolToken>("}");
+
+            return subroutineBody;
         }
     }
 }

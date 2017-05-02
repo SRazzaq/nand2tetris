@@ -1,4 +1,5 @@
 ﻿using JackAnalyzer.Parser;
+using JackAnalyzer.Visitor;
 using System;
 using System.IO;
 
@@ -47,15 +48,15 @@ namespace JackAnalyzer
 
             using (var reader = new StreamReader(jackFile))
             {
-                var scanner = new Scanner(reader);
-                WriteTokenFile(scanner, tokenFile);
+                var tokenizer = new Tokenizer(reader);
+                WriteTokenFile(tokenizer, tokenFile);
 
-                scanner.GetEnumerator().Reset();
-                WriteParserFile(scanner, parserFile);
+                tokenizer.GetEnumerator().Reset();
+                WriteParserFile(tokenizer, parserFile);
             }
         }
 
-        private static void WriteTokenFile(Scanner scanner, string tokenFile)
+        private static void WriteTokenFile(Tokenizer scanner, string tokenFile)
         {
             using (var writer = new StreamWriter(tokenFile))
             {
@@ -68,12 +69,14 @@ namespace JackAnalyzer
             }
         }
 
-        private static void WriteParserFile(Scanner scanner, string parserFile)
+        private static void WriteParserFile(Tokenizer scanner, string parserFile)
         {
+            var _class = new ClassParser(scanner.GetEnumerator()).Parse();
+
             using (var writer = new StreamWriter(parserFile))
             {
-                var parser = new ClassParser(scanner.GetEnumerator(), writer);
-                parser.Parse();
+                var printVisitor = new PrintVisitor(writer);
+                printVisitor.Visit(_class);
             }
         }
 

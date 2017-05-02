@@ -4,11 +4,11 @@ using System.IO;
 
 namespace JackAnalyzer
 {
-    public class Scanner : IEnumerable<Token>
+    public class Tokenizer : IEnumerable<Token>
     {
         private StreamReader reader;
 
-        public Scanner(StreamReader reader)
+        public Tokenizer(StreamReader reader)
         {
             this.reader = reader;
         }

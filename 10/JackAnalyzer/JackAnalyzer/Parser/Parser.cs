@@ -1,21 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace JackAnalyzer.Parser
 {
     public abstract class Parser
     {
         protected IEnumerator<Token> scanner;
-        protected StreamWriter writer;
 
-        public Parser(IEnumerator<Token> scanner, StreamWriter writer)
+        public Parser(IEnumerator<Token> scanner)
         {
             this.scanner = scanner;
-            this.writer = writer;
         }
-
-        public abstract void Parse();
 
         protected Token CurrentToken
         {
@@ -27,28 +22,24 @@ namespace JackAnalyzer.Parser
         }
 
         // Validates token value matches and writes to the output file.
-        protected void WriteToken<T>(string value)
+        protected Token GetToken<T>(string value)
         {
             if (CurrentToken.Value != value)
                 throw new Exception(string.Format("Expected token '{0}' not found.", value));
 
-            WriteToken<T>();
+            return GetToken<T>();
         }
 
         // Validates is of correct type and writes to the output file.
-        protected void WriteToken<T>()
+        protected Token GetToken<T>()
         {
             if (!(CurrentToken is T))
                 throw new Exception(string.Format("Invalid token found."));
 
-            writer.WriteLine(CurrentToken);
-
+            var token = CurrentToken;
             scanner.MoveNext();
-        }
 
-        protected void WriteLine(string t)
-        {
-            writer.WriteLine(t);
+            return token;
         }
     }
 }

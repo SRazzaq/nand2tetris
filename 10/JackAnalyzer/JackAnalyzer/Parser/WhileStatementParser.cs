@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JackAnalyzer.AST;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -6,25 +7,28 @@ namespace JackAnalyzer.Parser
 {
     internal class WhileStatementParser : Parser
     {
-        public WhileStatementParser(IEnumerator<Token> scanner, StreamWriter writer)
-            : base(scanner, writer)
+        public WhileStatementParser(IEnumerator<Token> scanner)
+            : base(scanner)
         {
         }
 
-        public override void Parse()
+        public WhileStatement Parse()
         {
-            WriteLine("<whileStatement>");
+            var whileStatement = new WhileStatement();
 
-            WriteToken<KeywordToken>("while");
-            WriteToken<SymbolToken>("(");
-            new ExpressionParser(scanner, writer).Parse();
-            WriteToken<SymbolToken>(")");
+            GetToken<KeywordToken>("while");
+            GetToken<SymbolToken>("(");
+            whileStatement.Condition = new ExpressionParser(scanner).Parse();
+            GetToken<SymbolToken>(")");
 
-            WriteToken<SymbolToken>("{");
-            new StatementsParser(scanner, writer).Parse();
-            WriteToken<SymbolToken>("}");
+            GetToken<SymbolToken>("{");
+            while (CurrentToken.Value != "}")
+            {
+                whileStatement.Statements.Add(new StatementParser(scanner).Parse());
+            }
+            GetToken<SymbolToken>("}");
 
-            WriteLine("</whileStatement>");
+            return whileStatement;
         }
     }
 }

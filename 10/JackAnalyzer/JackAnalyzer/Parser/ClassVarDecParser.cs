@@ -1,32 +1,32 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using JackAnalyzer.AST;
+using System.Collections.Generic;
 
 namespace JackAnalyzer.Parser
 {
     internal class ClassVarDecParser : Parser
     {
-        public ClassVarDecParser(IEnumerator<Token> scanner, StreamWriter writer)
-            : base(scanner, writer)
+        public ClassVarDecParser(IEnumerator<Token> scanner)
+            : base(scanner)
         {
         }
 
-        public override void Parse()
+        public ClassVarDec Parse()
         {
-            WriteLine("<classVarDec>");
+            var classVarDec = new ClassVarDec();
 
-            WriteToken<KeywordToken>(); // ('static' | 'field')
-            WriteToken<Token>(); // type
-            WriteToken<IdentifierToken>(); // varName 
+            classVarDec.Modifier = GetToken<KeywordToken>().Value; // ('static' | 'field')
+            classVarDec.Type = GetToken<Token>().Value; // type
+            classVarDec.Names.Add(GetToken<IdentifierToken>().Value); // varName 
 
-            if (CurrentToken.Value == ",")
+            while (CurrentToken.Value == ",")
             {
-                WriteToken<SymbolToken>(",");
-                WriteToken<IdentifierToken>();
+                GetToken<SymbolToken>(",");
+                classVarDec.Names.Add(GetToken<IdentifierToken>().Value);
             }
 
-            WriteToken<SymbolToken>(";");
+            GetToken<SymbolToken>(";");
 
-            writer.WriteLine("</classVarDec>");
+            return classVarDec;
         }
     }
 }
