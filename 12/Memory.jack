@@ -1,0 +1,108 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * Memory operations library.
+ */ 
+class Memory {
+	static Array memory;
+	
+    /** Initializes memory parameters. */
+    function void init() {
+		// Create a Jack-level "proxy" of the RAM 
+		let memory=0;
+		
+		//  available free block 
+		let memory[2048] = 14334;
+		
+		//  next free block (doesn't exist)
+		let memory[2049] = null;
+		
+		return;
+    }
+
+    /** Returns the value of the main memory at the given address. */
+    function int peek(int address) {
+		return memory[address];
+    }
+
+    /** Sets the value of the main memory at this address
+     *  to the given value. */
+    function void poke(int address, int value) {
+		let memory[address] = value;
+		return;
+	}
+
+    /** finds and allocates from the heap a memory block of the 
+     *  specified size and returns a reference to its base address. */
+    function int alloc(int size) {
+		var int current, next;
+		
+		if (size < 1) {
+			do Sys.error(5); // Memory.alloc: Allocated memory size must be positive
+		}
+		
+		// set current to first element.
+		let current = 2048;
+		
+		// first fit - Walk the list until space is found.
+		while (current[0] < size) {
+			let current = current[1];
+		}
+		
+		if (current + size > 16379) {
+			do Sys.error(6); // Memory.alloc: Heap overflow
+		}
+
+		// if found space is bigger than needed.
+		if (current[0] > (size + 2)) {
+
+			// create a new next block.
+			let next = current + size + 2;
+			
+			// set the next free block size to:
+			//     availableSize (current[0]) - requestedSize (size) - 2 (for housekeeping)
+			let next[0] = current[0] - size - 2;
+
+			// set next ptr to current ptr
+			let next[1] = current[1];
+			
+			// set current ptr to next
+			let current[1] = next;
+		}
+		
+		// mark space as used.
+		let current[0] = 0;
+		
+		// return base address of allocated block.
+		return current + 2;
+    }
+
+    /** De-allocates the given object and frees its space. */
+    function void deAlloc(int object) {
+		var int current, next;
+
+		let current = object - 2;
+		let next = current[1];
+		
+		if (next[0] = 0) {
+			// Next block is used
+			
+			// reclaim current space. Leave next ptr alone.
+			let current[0] = (next - current) - 2;
+		
+		} else {
+			// Next block is free
+			
+			// current blocks length = current length + next blocks length
+			let current[0] = (next - current) + next[0];
+			
+			// set next ptr to next's next ptr.
+			let current[1] = next[1];
+		}
+		
+		return;
+    }    
+}

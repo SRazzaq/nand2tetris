@@ -1,0 +1,266 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Screen.jack
+
+/**
+ * Graphic screen library.
+ */
+class Screen {
+	static Array bitMask;
+	static Array screen;
+	static boolean black;
+
+    /** Initializes the Screen. */
+    function void init() {
+		var int i;
+
+		// Start minAddress of screen
+		let screen = 16384;
+
+		// default color to black
+		let black = true;
+				
+		// Setup bitmask array
+		let bitMask = Array.new(16);
+		
+		let i = 1;
+		let bitMask[0] = 1;
+		while (i < 16) {
+			let bitMask[i] = bitMask[i-1] + bitMask[i-1];
+			let i = i + 1;
+		}
+		
+		return;	
+    }
+
+    /** Erases the whole screen. */
+    function void clearScreen() {
+		var int i;
+
+        while( i < 8192 ) {
+            let screen[i] = false;
+			let i = i + 1;
+        }
+        return;
+    }
+
+	function void updateLocation(int minAddress, boolean mask) {
+		if (black) {
+			let screen[minAddress] = screen[minAddress] | mask;
+		} else {
+			let screen[minAddress] = screen[minAddress] & ~mask;
+		}
+		
+		return;
+	}
+
+    /** Sets the color to be used in further draw commands
+     *  where white = false, black = true. */
+    function void setColor(boolean b) {
+		let black = b;
+		return;
+    }
+    
+	/** Draws the (x, y) pixel. */
+    function void drawPixel(int x, int y) {
+		var int address;
+		var int mask;
+		
+		if ((x < 0) | (x > 511) | (y < 0) | (y > 255)) {
+			do Sys.error(7); //Screen.drawPixel: Illegal pixel coordinates
+		}
+
+		let address = (y*32) + (x/16);
+		let mask = bitMask[x & 15];
+
+		do Screen.updateLocation(address, mask);
+		
+		return;
+    }
+	
+    /** Draws a line from (x1, y1) to (x2, y2). */
+    function void drawLine(int x1, int y1, int x2, int y2) {
+		if ((x1 < 0) | (x1 > 511) | (y1 < 0) | (y1 > 255) |
+			(x2 < 0) | (x2 > 511) | (y2 < 0) | (y2 > 255)) {
+			do Sys.error(8); // Screen.drawLine: Illegal line coordinates
+		}
+		
+		if (y1 = y2) {
+			do Screen.drawHorizontal(x1, x2, y1);
+			return;
+		}
+		
+		if (x1 = x2)
+		{
+			do Screen.drawVertical(y1, y2, x1);
+			return;
+		}
+
+		do Screen.drawDiagonal(x1, y1, x2, y2);
+		return;
+    }
+
+	/** Draws a horizontal line from (x1, y) to (x2, y). */
+    function void drawHorizontal(int x1, int x2, int y) {
+		var int temp,
+				startAddress, stopAddress, 
+				startMask, stopMask;
+		
+		if (x1 > x2) {
+			let temp = x1;
+			let x1 = x2;
+			let x2 = temp; 
+		}
+						
+		let startAddress = (y*32) + (x1/16);
+		let startMask = ~(bitMask[x1 & 15] - 1);
+
+		let stopAddress = (y*32) + (x2/16);
+		let stopMask = bitMask[(x2 & 15) + 1] - 1;
+		
+		
+		if (stopAddress = startAddress) {
+			do Screen.updateLocation(startAddress, startMask & stopMask);
+		} else {
+			// draw the bits for start address
+			do Screen.updateLocation(startAddress, startMask);
+			
+			// put all 1s for the intermediate bits.
+			let startAddress = startAddress + 1;
+			while (startAddress < stopAddress) {
+				do Screen.updateLocation(startAddress, -1);
+				let startAddress = startAddress + 1; 
+			}
+			
+			// draw the bits for stop address
+			do Screen.updateLocation(stopAddress, stopMask);
+		}			
+
+		return;
+    }
+	
+	/** Draws a vertical line from (x, y1) to (x, y2). */
+    function void drawVertical(int y1, int y2, int x) {
+		var int temp;
+		
+		if (y1 > y2) {
+			let temp = y1;
+			let y1 = y2;
+			let y2 = temp; 
+		}
+
+		while (y1 < y2)
+		{
+			do Screen.drawPixel(x, y1);
+			let y1 = y1 + 1;
+		}
+		
+		return;
+    }
+
+	/** Draws a diagonal line from (x1, y1) to (x2, y2). */
+	function void drawDiagonal(int x1, int y1, int x2, int y2) {
+		
+		// Implementation of Bresenham's line algorithm.
+		// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+		
+		var int currentX, currentY, xInc, yInc; 
+		var int dx, dy, twoDx, twoDy, error;
+
+		let dx = x2 - x1;
+		let dy = y2 - y1;
+		
+		let xInc = 1;
+		let yInc = 1;
+		
+		if (dx < 0) {
+			let dx = -dx;
+			let xInc = -1;
+		}
+		
+		if (dy < 0) {
+			let dy = -dy;
+			let yInc = -1;
+		}
+		
+		let twoDx = dx + dx;
+		let twoDy = dy + dy;
+
+		let currentX = x1;
+		let currentY = y1;		
+		
+		if (dx > dy) {
+			let error = twoDy - dx;
+			while (~(currentX = x2))
+			{
+				do Screen.drawPixel(currentX, currentY);
+				
+				if (error > dx) {
+					let error = error - twoDx;
+					let currentY = currentY + yInc;
+				}
+				let error = error + twoDy;
+				let currentX = currentX + xInc;
+			}
+		} else {
+			let error = twoDx - dy;
+			while (~(currentY = y2))
+			{
+				do Screen.drawPixel(currentX, currentY);
+				
+				if (error > dy) {
+					let error = error - twoDy;
+					let currentX = currentX + xInc;
+				}
+				let error = error + twoDx;
+				let currentY = currentY + yInc;
+			}
+		}
+		
+		return;
+	}
+    
+	/** Draws a filled rectangle where the top left corner
+     *  is (x1, y1) and the bottom right corner is (x2, y2). */
+    function void drawRectangle(int x1, int y1, int x2, int y2) {
+		var int y;
+		
+		if ((x1 > x2) | (y1 > y2) | (x1 < 0) | (x2 > 511) | (y1 < 0) | (y2 > 255)) {
+			do Sys.error(9); //Screen.drawRectangle: Illegal rectangle coordinates
+		}
+
+		let y = y1;
+		while (y < y2) {
+			do Screen.drawLine(x1, y, x2, y);
+			let y = y + 1;
+		}
+		return;
+    }
+
+    /** Draws a filled circle of radius r around (cx, cy). */
+    function void drawCircle(int cx, int cy, int r) {
+		var int dx, dy;
+		
+		if ((cx < 0) | (cx > 511) | (cy < 0) | (cy > 255)) {
+			do Sys.error(12); //Screen.drawCircle: Illegal center coordinates
+		}
+
+		if ( ((cx - r) < 0) | ((cx + r) > 511) | ((cy - r) < 0) | ((cy + r) > 255) ) {
+			do Sys.error(13); //Screen.drawCircle: Illegal radius
+		}
+
+		let dy = -r;
+		while (~(dy > 0)) {
+			let dx = Math.sqrt((r * r) - (dy * dy));
+			
+			// Since circle is symetric, you can draw both top and bottom line.
+			do Screen.drawHorizontal(cx - dx, cx + dx, cy + dy);
+			do Screen.drawHorizontal(cx - dx, cx + dx, cy - dy);
+			
+			let dy = dy + 1;
+		}
+	
+		return;
+    }
+}

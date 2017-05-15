@@ -1,0 +1,190 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/String.jack
+
+/**
+ * Represents a String object. Implements the String type.
+ */
+class String {
+	field int bufferSize;
+	field Array buffer;
+	
+	field int length;
+	
+    /** Constructs a new empty String with a maximum length of maxLength. */
+    constructor String new(int maxLength) {
+		if (maxLength < 0) {
+			do Sys.error(14); //String.new: Maximum length must be non-negative
+		}
+		
+		if (maxLength > 0) {
+			let buffer = Array.new(maxLength);
+		}
+		
+		let bufferSize = maxLength;
+		let length = 0;
+		return this;
+    }
+
+    /** De-allocates the string and frees its space. */
+    method void dispose() {
+		if (bufferSize > 0) {
+			do Array.dispose(buffer);
+		}
+		do Memory.deAlloc(this);
+		
+		return;
+    }
+
+    /** Returns the current length of this String. */
+    method int length() {
+		return length;
+    }
+
+    /** Returns the character at location j. */
+    method char charAt(int j) {
+		if ((j < 0) | (j > length) | (j = length)) {
+			do Sys.error(15); //String.charAt: String index out of bounds
+		}
+		
+		return buffer[j];
+    }
+
+    /** Sets the j'th character of this string to be c. */
+    method void setCharAt(int j, char c) {
+		if ((j < 0) | (j > length) | (j = length)) {
+			do Sys.error(16); //String.setCharAt: String index out of bounds
+		}
+		
+		let buffer[j] = c;
+		return;
+    }
+
+    /** Appends the character c to the end of this String.
+     *  Returns this string as the return value. */
+    method String appendChar(char c) {
+		if (length = bufferSize) {
+			do Sys.error(17); //String.appendChar: String is full
+		}
+		
+		let buffer[length] = c;
+		let length = length + 1;
+		return this;
+    }
+
+    /** Erases the last character from this String. */
+    method void eraseLastChar() {
+		if (length = 0) {
+			do Sys.error(18); //String.eraseLastChar: String is empty
+		}
+		
+		let length = length -1;
+		return;
+    }
+
+    /** Returns the integer value of this String until the first non
+     *  numeric character. */
+    method int intValue() {
+		var int i, number, digit;
+		var boolean valid, negative;
+		
+		if (length = 0) {
+			return 0;
+		}
+
+		let valid = true;
+
+		if (buffer[0] = 45) {
+			let negative = true;
+			let i = 1;
+		}
+		
+		while ((i < length) & valid) {
+			let digit = buffer[i] - 48;
+			let valid = ~((digit < 0) | (digit > 9));
+
+			if (valid)
+			{
+				let number = (number * 10) + digit;
+				let i = i + 1;
+			}
+		}
+		
+		if (negative) {
+			let number = -number;
+		}
+		
+		return number;
+    }
+
+    /** Sets this String to hold a representation of the given number. */
+    method void setInt(int number) {
+		var int len, n;
+		var Array temp;
+		var boolean negative;
+		
+		if (bufferSize = 0) {
+			do Sys.error(19); //String.setInt: Insufficient string capacity
+		}
+		
+		let temp = Array.new(6);
+		if (number < 0)
+		{
+			let negative = true;
+			let number = -number;
+		}
+		
+		let n = number;
+		while (n > 0)
+		{
+			let n = number / 10;
+			let temp[len] = 48 + (number - (n * 10));
+
+			let len = len + 1;
+			let number = n;
+		}
+
+		if (negative) {
+			let temp[len] = 45;
+			let len = len + 1;
+		} 
+		
+		if (bufferSize < len)
+		{
+			do Sys.error(19); //String.setInt: Insufficient string capacity			
+		}
+		
+		if (len = 0)
+		{
+			let buffer[0]=48;
+			let length = 1;
+		} else {
+			let length = 0;
+			while (length < len)
+			{
+				let buffer[length] = temp[len - (length + 1)];
+				let length = length + 1;
+			}
+		}
+		
+		do Array.dispose(temp);
+		
+		return;
+    }
+
+    /** Returns the new line character. */
+    function char newLine() {
+		return 128;
+    }
+
+    /** Returns the backspace character. */
+    function char backSpace() {
+		return 129;
+    }
+
+    /** Returns the double quote (") character. */
+    function char doubleQuote() {
+		return 34;
+    }
+}
